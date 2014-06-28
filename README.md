@@ -6,7 +6,7 @@ minicron
 [![Coverage Status](http://img.shields.io/coveralls/jamesrwhite/minicron.svg)](https://coveralls.io/r/jamesrwhite/minicron?branch=master)
 [![Code Climate](http://img.shields.io/codeclimate/github/jamesrwhite/minicron.svg)](https://codeclimate.com/github/jamesrwhite/minicron)
 [![Dependency Status](http://img.shields.io/gemnasium/jamesrwhite/minicron.svg)](https://gemnasium.com/jamesrwhite/minicron)
-[![Inline docs](http://inch-pages.github.io/github/jamesrwhite/minicron.png)](http://inch-pages.github.io/github/jamesrwhite/minicron)
+[![Inline docs](http://inch-ci.org/github/jamesrwhite/minicron.png)](http://inch-ci.org/github/jamesrwhite/minicron)
 
 minicron aims to complement ````cron```` by making it easier to manage and monitor cron jobs, it can largely be
 thought of as two components that interact together, the CLI and the Hub. The CLI is what is installed on your
@@ -39,8 +39,7 @@ Screenshots
 Background
 -----------
 
-I'm developing minicron as part of my dissertation at university which has to be completed by mid May but I plan to continue
-its development after that. The inspiration for developing minicron comes largely from my experience and frustrations using cron,
+I initially developed minicron as part of my dissertation at university. The inspiration for developing minicron comes largely from my experience and frustrations using cron,
 in particular my time spent working at [Miniclip](http://www.miniclip.com) (which is where the name comes from, miniclip.. minicron, get it?)
 where the management and monitoring of cron jobs at times proved to be tricky!
 
@@ -106,7 +105,7 @@ but I encourage you to give it a try in a non critical environment and help me t
 
 2. On some distributions you may need to install the ````ruby-dev```` and ````build-essential```` packages
 
-3. To install the latest release (currently 0.6.1) you can ````gem install minicron````, depending on your ruby setup
+3. To install the latest release (currently 0.7.1) you can ````gem install minicron````, depending on your ruby setup
    you may need to run this with ````sudo````
 
 4. Set your database configuration options in ````/etc/minicron.toml````, you can use the [minicron.toml](https://github.com/jamesrwhite/minicron/blob/master/config/minicron.toml) as a guide on what options are configurable
@@ -166,7 +165,7 @@ by default it will bind to port 9292 on the host 127.0.0.1 but this can be confi
 arguments ````--host```` ````--port```` and ````--path```` or in the config file.
 
 By default the server will run as a daemon with its process id stored in ````/tmp/minicron.pid````
-you can also use the ````stop```` and ````status```` commands to control the server.
+you can also use the ````stop````, ````restart```` and ````status```` commands to control the server.
 
 To run the server in debug mode, i.e not as a daemon so you can see its output you can pass the ````--debug````
 option.
