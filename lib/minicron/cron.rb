@@ -22,7 +22,7 @@ module Minicron
       command = Escape.shell_command(['minicron', 'run', command])
       cron_command = Escape.shell_command(['/bin/bash', '-l', '-c', command])
 
-      "#{schedule} #{user} #{cron_command}"
+      user == 'root' ? "#{schedule} #{user} #{cron_command}" : "#{schedule} #{cron_command}"
     end
 
     # Test an SSH connection and the permissions for the crontab
@@ -97,13 +97,16 @@ module Minicron
         raise Exception, "Unable to replace '#{find}' with '#{replace}' in the crontab, reason: #{e}"
       end
 
+      # Get a temporary name for the crontab
+      temp_crontab = "/tmp/minicron_crontab_#{Time.now.to_f}"
+
       # Echo the crontab back to the tmp crontab
-      conn.exec!("echo #{crontab.shellescape} > /tmp/minicron_crontab").to_s.strip
+      conn.exec!("echo #{crontab.shellescape} > #{temp_crontab}").to_s.strip
 
       # If it's a delete
       if replace == ''
         # Check the original line is no longer there
-        grep = conn.exec!("grep -F #{find.shellescape} /tmp/minicron_crontab").to_s.strip
+        grep = conn.exec!("grep -F #{find.shellescape} #{temp_crontab}").to_s.strip
 
         # Throw an exception if we can't see our new line at the end of the file
         if grep != replace
@@ -111,7 +114,7 @@ module Minicron
         end
       else
         # Check the updated line is there
-        grep = conn.exec!("grep -F #{replace.shellescape} /tmp/minicron_crontab").to_s.strip
+        grep = conn.exec!("grep -F #{replace.shellescape} #{temp_crontab}").to_s.strip
 
         # Throw an exception if we can't see our new line at the end of the file
         if grep != replace
@@ -120,10 +123,10 @@ module Minicron
       end
 
       # And finally replace the crontab with the new one now we now the change worked
-      move = conn.exec!("/bin/sh -c 'mv /tmp/minicron_crontab /etc/crontab && echo \"y\" || echo \"n\"'").to_s.strip
+      move = conn.exec!("/bin/sh -c 'mv #{temp_crontab} /etc/crontab && echo \"y\" || echo \"n\"'").to_s.strip
 
       if move != 'y'
-        fail Exception, 'Unable to move /tmp/minicron_crontab to /etc/crontab, check the permissions?'
+        fail Exception, "Unable to move #{temp_crontab} to /etc/crontab, check the permissions?"
       end
     end
 
@@ -139,17 +142,36 @@ module Minicron
       # Prepare the line we are going to write to the crontab
       line = build_minicron_command(schedule, job.user, job.command)
       escaped_line = line.shellescape
-      echo_line = "echo #{escaped_line} >> /etc/crontab"
 
-      # Append it to the end of the crontab
-      conn.exec!(echo_line).to_s.strip
+      # Are we adding to the root crontab or user crontab?
+      if job.user == 'root'
+        echo_line = "echo #{escaped_line} >> /etc/crontab"
 
-      # Check the line is there
-      tail = conn.exec!('tail -n 1 /etc/crontab').to_s.strip
+        # Append it to the end of the crontab
+        conn.exec!(echo_line).to_s.strip
 
-      # Throw an exception if we can't see our new line at the end of the file
-      if tail != line
-        fail Exception, "Expected to find '#{line}' at eof but found '#{tail}'"
+        # Check the line is there
+        tail = conn.exec!('tail -n 1 /etc/crontab').to_s.strip
+
+        # Throw an exception if we can't see our new line at the end of the file
+        if tail != line
+          fail Exception, "Expected to find '#{line}' at eof but found '#{tail}'"
+        end
+      # If we're editing the user crontab
+      else
+        conn.open_channel do |channel|
+          channel.request_pty do |ch, success|
+            unless success
+              fail Exception, 'Could not obtain pty!'
+            end
+          end
+
+          channel.exec 'VISUAL=vi crontab -e' do |ch, success|
+            ch.send_data("GA\n#{line}\e:x\n")
+          end
+        end
+
+        conn.loop
       end
     end
 
