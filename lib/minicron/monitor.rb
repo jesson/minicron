@@ -100,32 +100,35 @@ module Minicron
       # Get an instance of the alert class
       alert = Minicron::Alert.new
 
-      # Parse the cron expression
-      cron = CronParser.new(schedule.formatted)
+      # Skip trying to monitor @reboot, it's not possible
+      if schedule.formatted != '@reboot'
+        # Parse the cron expression
+        cron = CronParser.new(schedule.formatted)
 
-      # Find the time the cron was last expected to run
-      expected_at = cron.last(Time.now)
-      expected_by = expected_at + 60
+        # Find the time the cron was last expected to run
+        expected_at = cron.last(Time.now)
+        expected_by = expected_at + 60
 
-      # We only need to check jobs that are expected to under the monitor start time
-      # and jobs that have passed their expected by time
-      if expected_at > @start_time && Time.now > expected_by
-        # Check if this execution was created inside a minute window
-        # starting when it was expected to run
-        check = Minicron::Hub::Execution.exists?(
-          :created_at => expected_at..expected_by,
-          :job_id => schedule.job_id
-        )
-
-        # If the check failed
-        unless check
-          alert.send_all(
-            :kind => 'miss',
-            :schedule_id => schedule.id,
-            :expected_at => expected_at,
-            :job_id => schedule.job_id,
-            :expected_at => expected_at
+        # We only need to check jobs that are expected to under the monitor start time
+        # and jobs that have passed their expected by time
+        if expected_at > @start_time && Time.now > expected_by
+          # Check if this execution was created inside a minute window
+          # starting when it was expected to run
+          check = Minicron::Hub::Execution.exists?(
+            :created_at => expected_at..expected_by,
+            :job_id => schedule.job_id
           )
+
+          # If the check failed
+          unless check
+            alert.send_all(
+              :kind => 'miss',
+              :schedule_id => schedule.id,
+              :expected_at => expected_at,
+              :job_id => schedule.job_id,
+              :expected_at => expected_at
+            )
+          end
         end
       end
     end
