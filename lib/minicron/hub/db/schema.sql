@@ -118,6 +118,7 @@ CREATE TABLE `jobs` (
   `job_hash` varchar(32) NOT NULL DEFAULT '',
   `name` varchar(255) DEFAULT NULL,
   `user` varchar(32) NOT NULL,
+  `alert_options` varchar(32),
   `command` text NOT NULL,
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL,

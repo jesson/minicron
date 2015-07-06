@@ -72,6 +72,7 @@ ActiveRecord::Schema.define(version: 0) do
     t.string   "job_hash",   limit: 32, default: "", null: false
     t.string   "name"
     t.string   "user",       limit: 32,              null: false
+    t.string   "alert_options", limit: 64
     t.text     "command",                            null: false
     t.datetime "created_at",                         null: false
     t.datetime "updated_at",                         null: false

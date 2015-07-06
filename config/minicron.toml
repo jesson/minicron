@@ -58,6 +58,11 @@ dry_run = false # When true the command is run but not sent to the server
     [alerts.sms.twilio]
     # account_sid = "YOUR_TWILIO_ACCOUNT_SID"
     # auth_token = "YOUR_TWILIO_AUTH_TOKEN"
+    [alert.sms.override.subgroup_1]
+    # enabled = true
+      [alerts.sms.override.subgroup_1.twilio]
+      # account_sid = "YOUR_TWILIO_ACCOUNT_SID"
+      # auth_token = "YOUR_TWILIO_AUTH_TOKEN"
 
   [alerts.pagerduty]
   enabled = false
@@ -69,4 +74,8 @@ dry_run = false # When true the command is run but not sent to the server
   # access_key_id = "AKIAJMUAH24YJW6BCX2Q"
   # region = "us-west-2"
   # topic_arn = "arn:aws:sns:us-west-2:453856305308:minicron-test"
+    [alerts.aws_sns.override.subgroup_1]
+    # enabled = true
+    # secret_access_key = "fowiFDIOJidfjsodifJPSDFIjskdlfjoI"
+    # access_key_id = "DIFSJOJ898FDLJOI"
 

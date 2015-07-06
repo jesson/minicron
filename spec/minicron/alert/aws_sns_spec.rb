@@ -14,64 +14,20 @@ describe Minicron::AwsSns do
         }
       }
     })
+    @config = Minicron.config['alerts']['aws_sns']
   end
 
   describe '#intiailize' do
     it 'should create an instance of the Twilio gem' do
-      sns = Minicron::AwsSns.new
+      sns = Minicron::AwsSns.new @config
 
       expect(sns.instance_variable_get(:@client)).to be_a Aws::SNS::Client
     end
   end
 
-  describe '#get_message' do
-    context 'when kind is miss' do
-      it 'should return the correct message' do
-        sns = Minicron::AwsSns.new
-        time = Time.now.utc
-        options = {
-          :job_id => 1,
-          :expected_at => time,
-          :execution_id => 2,
-          :kind => 'miss'
-        }
-        message = "minicron alert - job missed!\nJob #1 failed to execute at its expected time: #{time}"
-
-        expect(sns.get_message(options)).to eq message
-      end
-    end
-
-    context 'when kind is fail' do
-      it 'should return the correct message' do
-        sns = Minicron::AwsSns.new
-        options = {
-          :job_id => 1,
-          :execution_id => 2,
-          :kind => 'fail'
-        }
-        message = "minicron alert - job failed!\nExecution #2 of Job #1 failed"
-
-        expect(sns.get_message(options)).to eq message
-      end
-    end
-
-    context 'when kind is not supported' do
-      it 'should raise an Exception' do
-        sns = Minicron::AwsSns.new
-        options = {
-          :kind => 'derp'
-        }
-
-        expect do
-          sns.get_message(options)
-        end.to raise_error Exception
-      end
-    end
-  end
-
   describe '#send' do
     it 'sends message to the topic_arn' do
-      sns = Minicron::AwsSns.new
+      sns = Minicron::AwsSns.new @config
       subject = 'subject'
       message = 'message'
       expect_any_instance_of(Aws::SNS::Client).to receive(:publish).with(

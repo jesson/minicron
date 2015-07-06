@@ -40,3 +40,6 @@ newrelic.yml
 
 # My development config that I symlink to /etc/minicron.toml
 my.config.toml
+
+# Sinatra
+config.ru

@@ -1,35 +1,18 @@
+require 'minicron/alert/base'
 require 'aws-sdk-core'
 
 module Minicron
-  class AwsSns
+  class AwsSns < Minicron::AlertBase
     # Used to set up on the AWS::SNS::Topic
-    def initialize
+    def initialize config
+      @config = config
+
       # Get an instance of the twilio client
       @client = Aws::SNS::Client.new({
-        access_key_id:  Minicron.config['alerts']['aws_sns']['access_key_id'],
-        secret_access_key:  Minicron.config['alerts']['aws_sns']['secret_access_key'],
-        region: Minicron.config['alerts']['aws_sns']['region']
+        access_key_id:  @config['access_key_id'],
+        secret_access_key:  @config['secret_access_key'],
+        region: @config['region']
       })
-    end
-
-    # Return the message for an alert
-    #
-    # @option options [Minicron::Hub::Job] job a job instance
-    # @option options [String] kind 'fail' or 'miss'
-    # @option options [Integer, nil] schedule_id only applies to 'miss' alerts
-    # @option options [Integer, nil] execution_id only used by 'fail' alerts
-    # @option options [Integer] job_id used to look up the job name for the alert message
-    # @option options [Time] expected_at when the schedule was expected to execute
-    # @option options [String] medium the medium to send the alert via
-    def get_message(options = {})
-      case options[:kind]
-      when 'miss'
-        "minicron alert - job missed!\nJob ##{options[:job_id]} failed to execute at its expected time: #{options[:expected_at]}"
-      when 'fail'
-        "minicron alert - job failed!\nExecution ##{options[:execution_id]} of Job ##{options[:job_id]} failed"
-      else
-        fail Exception, "The kind '#{options[:kind]} is not supported!"
-      end
     end
 
     # Send an sms alert
@@ -39,7 +22,7 @@ module Minicron
     # @param message [String]
     def send(subject, message)
       @client.publish(
-        topic_arn: Minicron.config['alerts']['aws_sns']['topic_arn'],
+        topic_arn: @config['topic_arn'],
         subject: subject,
         message: message
       )

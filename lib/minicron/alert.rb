@@ -1,3 +1,4 @@
+
 module Minicron
   autoload :Email,      'minicron/alert/email'
   autoload :SMS,        'minicron/alert/sms'
@@ -18,7 +19,16 @@ module Minicron
     # @option options [Integer, nil] schedule_id only applies to 'miss' alerts
     # @option options [Time] expected_at only applies to 'miss' alerts
     def send_all(options = {})
+      # Look up the job for this schedule
+      options[:job] = Minicron::Hub::Job.find(options[:job_id])
+
       Minicron.config['alerts'].each do |medium, value|
+        # If subgroup present then try merge options
+        if (alert_options = options[:job].alert_options).present? && value['override'] && value['override'][alert_options]
+          subgroup = value['override'].delete(alert_options)
+          value.delete('override')
+          value = value.merge(subgroup)
+        end
         # Check if the medium is enabled and alert hasn't already been sent
         if value['enabled'] && !sent?(options)
           send(
@@ -26,8 +36,10 @@ module Minicron
             :schedule_id => options[:schedule_id],
             :execution_id => options[:execution_id],
             :job_id => options[:job_id],
+            :job => options[:job],
             :expected_at => options[:expected_at],
-            :medium => medium
+            :medium => medium,
+            :config => value
           )
         end
       end
@@ -42,9 +54,6 @@ module Minicron
     # @option options [Time] expected_at when the schedule was expected to execute
     # @option options [String] medium the medium to send the alert via
     def send(options = {})
-      # Look up the job for this schedule
-      options[:job] = Minicron::Hub::Job.find(options[:job_id])
-
       # Switch the medium that the alert will be sent via
       case options[:medium]
       when 'email'
@@ -73,7 +82,7 @@ module Minicron
 
     # Send an email alert, this has the same options as #send
     def send_email(options = {})
-      email = Minicron::Email.new
+      email = Minicron::Email.new options[:config]
       email.send(
         Minicron.config['alerts']['email']['from'],
         Minicron.config['alerts']['email']['to'],
@@ -84,7 +93,7 @@ module Minicron
 
     # Send an sms alert, this has the same options as #send
     def send_sms(options = {})
-      sms = Minicron::SMS.new
+      sms = Minicron::SMS.new options[:config]
       sms.send(
         Minicron.config['alerts']['sms']['from'],
         Minicron.config['alerts']['sms']['to'],
@@ -94,7 +103,7 @@ module Minicron
 
     # Send a pagerduty alert, this has the same options as #send
     def send_pagerduty(options = {})
-      pagerduty = Minicron::PagerDuty.new
+      pagerduty = Minicron::PagerDuty.new options[:config]
       pagerduty.send(
         options[:kind] == 'fail' ? 'Job failed!' : 'Job missed!',
         pagerduty.get_message(options)
@@ -102,7 +111,7 @@ module Minicron
     end
 
     def send_aws_sns(options = {})
-      sns = Minicron::AwsSns.new
+      sns = Minicron::AwsSns.new options[:config]
       sns.send(
         "minicron alert for job '#{options[:job].name}'!",
         sns.get_message(options)

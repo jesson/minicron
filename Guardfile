@@ -52,3 +52,7 @@ guard :bundler do
   # Assume files are symlinked from somewhere
   files.each { |file| watch(helper.real_path(file)) }
 end
+
+guard 'shotgun' do
+  watch(%r{^(app|assets|lib|config)/(.)*.(rb|css|js|haml)})
+end

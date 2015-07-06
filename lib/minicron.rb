@@ -45,6 +45,11 @@ module Minicron
           'password' => nil,
           'authentication' => nil,
           'enable_starttls_auto' => true
+        },
+        'override' => {
+          'subgroup_1' => {
+            'enabled' => false,
+          }
         }
       },
       'sms' => {
