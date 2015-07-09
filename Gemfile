@@ -11,4 +11,6 @@ group :development, :test do
   gem 'faker'
   gem 'database_cleaner'
   gem 'guard-shotgun'
+  gem 'capybara'
+  gem 'capybara-webkit'
 end

@@ -15,10 +15,13 @@ require 'minicron/cli'
 require 'minicron/hub/app'
 require 'faker'
 require 'database_cleaner'
+require 'capybara/rspec'
 
 ENV['RACK_ENV'] = 'test'
 
 Dir[File.dirname(__FILE__) + '/support/**/*.rb'].each { |f| require f }
+
+Capybara.javascript_driver = :webkit
 
 RSpec.configure do |config|
   include Rack::Test::Methods

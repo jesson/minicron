@@ -40,6 +40,7 @@ class Minicron::Hub::App
         :name => request_body['job']['name'],
         :user => request_body['job']['user'],
         :command => request_body['job']['command'],
+        :alert_options => request_body['job']['alert_options'],
         :host_id => host.id
       )
 
@@ -68,6 +69,7 @@ class Minicron::Hub::App
       # Update the name and user
       job.name = request_body['job']['name']
       job.user = request_body['job']['user']
+      job.alert_options = request_body['job']['alert_options']
 
       job.save!
 
