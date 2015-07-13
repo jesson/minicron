@@ -23,12 +23,13 @@ module Minicron
       options[:job] = Minicron::Hub::Job.find(options[:job_id])
 
       Minicron.config['alerts'].each do |medium, value|
-        # If subgroup present then try merge options
+
+        # If there is a subgroup then merge it
         if (alert_options = options[:job].alert_options).present? && value['override'] && value['override'][alert_options]
-          subgroup = value['override'].delete(alert_options)
+          value = value.merge(value['override'].delete(alert_options))
           value.delete('override')
-          value = value.merge(subgroup)
         end
+
         # Check if the medium is enabled and alert hasn't already been sent
         if value['enabled'] && !sent?(options)
           send(

@@ -24,8 +24,8 @@ describe "Alert settings per Job" do
     it "returns alert option subgroups" do
       alertOptionsSubgroups = {
         alert_options_subgroups: [
-          { name: subgroup_name1 },
-          { name: subgroup_name2 }
+          { id: subgroup_name1, name: subgroup_name1 },
+          { id: subgroup_name2, name: subgroup_name2 }
         ]
       }
       get '/api/alertOptionsSubgroups'
